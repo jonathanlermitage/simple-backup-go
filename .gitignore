@@ -1,0 +1,20 @@
+private/
+target/
+out/
+logs/
+*.exe
+
+### MS Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+### macOS ###
+.DS_Store
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+.run/

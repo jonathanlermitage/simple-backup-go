@@ -1,0 +1,31 @@
+[
+  {
+    "task-name": "Some projects",
+    "source": "C:\\Projects",
+    "excludes": [
+      "web3 sucks/out",
+      "web3 sucks/target",
+      "Facebook2/build/distribution",
+      "Facebook2/.gradle",
+      "go/bin",
+      "go/pkg"
+    ]
+  },
+  {
+    "task-name": "AppData LocalLow",
+    "source": "C:\\Users\\jonathan\\AppData\\LocalLow",
+    "protect-with-password": "true",
+    "excludes": [
+      "Adobe",
+      "Temp"
+    ]
+  },
+  {
+    "task-name": "Foobar2000 playlists",
+    "source": "C:\\Users\\jonathan\\AppData\\Roaming\\foobar2000"
+  },
+  {
+    "task-name": "Stardew Valley profile and saves",
+    "source": "C:\\Users\\jonathan\\AppData\\Roaming\\StardewValley"
+  }
+]
