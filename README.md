@@ -18,12 +18,14 @@ Simply run `go build` or `make build` and see generated executable.
 
 The program takes command-line parameters:
 
-| Command      | Description                                                                  | Default |                          Required                          |
-|--------------|------------------------------------------------------------------------------|:-------:|:----------------------------------------------------------:|
-| targetFolder | where the backups are located                                                |         |                            yes                             |
-| configFile   | the location of the JSON config file                                         |         |                            yes                             |
-| dryRun       | don't run the backup tasks, and show what the 7zip commands would be instead | `false` |                             no                             |
-| password     | password used to protect backups, if password required by JSON config        |         | if `protect-with-password` is set to `true` in JSON config |
+| Command            | Description                                                                        | Default |                          Required                          |
+|--------------------|------------------------------------------------------------------------------------|:-------:|:----------------------------------------------------------:|
+| targetFolder       | where the backups are located                                                      |         |                            yes                             |
+| configFile         | the location of the JSON config file                                               |         |                            yes                             |
+| logsFolder         | where the logs are saved (will save no logs if not specified)                      |         |                             no                             |
+| dryRun             | don't run the backup tasks, and show what the 7zip commands would be instead       | `false` |                             no                             |
+| password           | password used to protect backups, if password required by JSON config              |         | if `protect-with-password` is set to `true` in JSON config |
+| taskNamesToExecute | backup tasks filter: use it to execute only given backup tasks (see example below) |         |                             no                             |
 
 A JSON config file describes one or many backup tasks. See the sample [backup.json file](./sample/backup.json). Every backup task is described by some fields:
 
@@ -34,9 +36,14 @@ A JSON config file describes one or many backup tasks. See the sample [backup.js
 | protect-with-password | protect the generated archive file with the password provided by the command line | `false` |    no    |
 | excludes              | a list of sub-folders to exclude from the backup                                  |  `[]`   |    no    |
 
-Example: 
+Examples: 
+
 ```shell
+# execute the backup tasks defined by backup-config.json
 simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=C:\Users\jonathan\backup-config.json
+
+# execute only the "Foobar2000 playlists" and "Stardew Valley profile and saves" backup tasks
+simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=C:\Users\jonathan\backup-config.json -taskNamesToExecute="Foobar2000 playlists,Stardew Valley profile and saves"
 ```
 
 It will generate 7zip archive files in the target folder. Archive files look like this: `the_source_folder_path YYYYMMDD hhmmss.7z`, pex example `C_Projects 20220819 201536.7z`.  

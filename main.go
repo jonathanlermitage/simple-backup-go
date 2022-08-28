@@ -41,7 +41,7 @@ func main() {
 		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(configs)) + ", backup of " + config.TaskName + " ]----------\n")
 
 		if len(taskNamesToExecute) > 0 && !IsElementExist(taskNamesToKeepArray, config.TaskName) {
-			fmt.Println("Skipped by ignore list")
+			fmt.Println("Skipped by backup tasks filter (taskNamesToExecute)")
 			continue
 		}
 
