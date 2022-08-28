@@ -96,9 +96,9 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	return string(out[:])
 }
 
-func RotateReport(logsFolder string, dryRun bool) {
-	var prevReportFilePath = logsFolder + "simple_backup-go-report_prev.txt"
-	var reportFilePath = logsFolder + "simple_backup-go-report.txt"
+func RotateLogs(logsFolder string, dryRun bool) {
+	var prevReportFilePath = logsFolder + "simple-backup-go-logs_prev.txt"
+	var reportFilePath = logsFolder + "simple-backup-go-logs.txt"
 	fmt.Println("Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
 	if !dryRun {
 		_ = os.Remove(prevReportFilePath)
@@ -106,17 +106,17 @@ func RotateReport(logsFolder string, dryRun bool) {
 	}
 }
 
-func SaveReport(report string, logsFolder string, dryRun bool) {
+func SaveLogs(report string, logsFolder string, dryRun bool) {
 	if !dryRun {
-		f, err := os.OpenFile(logsFolder+"simple_backup-go-report.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(logsFolder+"simple-backup-go-logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			log.Fatal("Error when opening report file:", err)
+			log.Fatal("Error when opening log file:", err)
 		}
 		if _, err := f.WriteString("\n" + report); err != nil {
-			log.Fatal("Error when writing report file:", err)
+			log.Fatal("Error when writing log file:", err)
 		}
 		if err := f.Close(); err != nil {
-			log.Fatal("Error when closing report file:", err)
+			log.Fatal("Error when closing log file:", err)
 		}
 	}
 }

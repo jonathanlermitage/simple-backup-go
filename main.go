@@ -25,7 +25,12 @@ func main() {
 	var configs = LoadBackupTaskConfigs(configFile)
 
 	if len(logsFolder) > 0 {
-		RotateReport(logsFolder, dryRun)
+		logsFolder = strings.Replace(logsFolder, "\\", "/", -1)
+		if !(strings.HasSuffix(logsFolder, "/")) {
+			logsFolder += "/"
+		}
+		fmt.Println("Rotate logs in " + logsFolder)
+		RotateLogs(logsFolder, dryRun)
 	}
 
 	var taskNamesToKeepArray []string
@@ -52,7 +57,7 @@ func main() {
 		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password, config.ProtectWithPassword == "true", dryRun)
 
 		if len(logsFolder) > 0 {
-			SaveReport(compressResult, logsFolder, dryRun)
+			SaveLogs(compressResult, logsFolder, dryRun)
 		}
 
 		if validate7zOutput(compressResult) {
