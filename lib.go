@@ -112,7 +112,7 @@ func SaveLogs(report string, logsFolder string, dryRun bool) {
 		if err != nil {
 			log.Fatal("Error when opening log file:", err)
 		}
-		if _, err := f.WriteString("\n" + report); err != nil {
+		if _, err := f.WriteString("\n##########\n" + report); err != nil {
 			log.Fatal("Error when writing log file:", err)
 		}
 		if err := f.Close(); err != nil {

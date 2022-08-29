@@ -29,7 +29,6 @@ func main() {
 		if !(strings.HasSuffix(logsFolder, "/")) {
 			logsFolder += "/"
 		}
-		fmt.Println("Rotate logs in " + logsFolder)
 		RotateLogs(logsFolder, dryRun)
 	}
 
