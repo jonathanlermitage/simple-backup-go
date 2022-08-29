@@ -31,7 +31,7 @@ A JSON config file describes one or many backup tasks. See the sample [backup.js
 
 | Field                 | Description                                                                       | Default | Required |
 |-----------------------|-----------------------------------------------------------------------------------|:-------:|:--------:|
-| description           | a title for the backup task. This is only informational                           |         |   yes    |
+| task-name             | a name for the backup task                                                        |         |   yes    |
 | source                | the folder to back up                                                             |         |   yes    |
 | protect-with-password | protect the generated archive file with the password provided by the command line | `false` |    no    |
 | excludes              | a list of sub-folders to exclude from the backup                                  |  `[]`   |    no    |
