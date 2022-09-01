@@ -59,7 +59,7 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	}
 	targetFolder += GetCurrentDate() + "/"
 
-	archiveName = targetFolder + archiveName + " " + GetCurrentDateTime() + ".7z"
+	var archivePath = targetFolder + archiveName + " " + GetCurrentDateTime() + ".7z"
 
 	if !dryRun {
 		if !FolderExists(targetFolder) {
@@ -68,12 +68,12 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 				log.Fatal(mkdirErr)
 			}
 		}
-		if FileExists(archiveName) {
-			_ = os.Remove(archiveName)
+		if FileExists(archivePath) {
+			_ = os.Remove(archivePath)
 		}
 	}
 
-	args = append(args, archiveName, folderToCompress,
+	args = append(args, archivePath, folderToCompress,
 		"-ssw", /* compress files open for writing */
 		"-mx3", /* set level of compression */
 		"-bd" /* disable progress indicator */)
@@ -93,7 +93,17 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	if err != nil {
 		fmt.Println(err)
 	}
-	return string(out[:])
+
+	var compressionResult = string(out[:])
+
+	if !validate7zOutput(compressionResult) {
+		if FileExists(archivePath) {
+			_ = os.Remove(archivePath)
+			fmt.Println("Compression failed, deleted bad archive file " + archivePath)
+		}
+	}
+
+	return compressionResult
 }
 
 func RotateLogs(logsFolder string, dryRun bool) {
