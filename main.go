@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"container/list"
 	"flag"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -81,4 +83,9 @@ func main() {
 		fmt.Println("\n😎 Everything is OK!")
 		SaveLogs("Everything is OK!", logsFolder, dryRun)
 	}
+
+	fmt.Print("\nPress any key to exit...")
+	input := bufio.NewScanner(os.Stdin)
+	input.Scan()
+	fmt.Println(input.Text())
 }

@@ -49,6 +49,8 @@ simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=
 It will generate 7zip archive files in the target folder. Archive files look like this: `the_source_folder_path YYYYMMDD hhmmss.7z`, pex example `C_Projects 20220819 201536.7z`.  
 Compression is set to _Fast_ (`-mx3` 7zip parameter) and it should compress files open for writing (`-ssw` 7zip parameter).
 
+Tip: you may want to start the program in a new tab on Windows Terminal (`wt`) instead of the classical CMD console (which doesn't render emojis correctly). Please use a command like this: `wt -w 0 nt C:\theAbsolutePathOf\simple-backup-go.exe ...arguments...`, otherwise you may see an error when Windows Terminal is already opened. See the [Windows Terminal documentation](https://docs.microsoft.com/en-us/windows/terminal/command-line-arguments?tabs=windows#open-a-new-profile-instance).
+
 ## To-Do
 
 * run backup tasks in parallel (make it configurable?)
