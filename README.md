@@ -52,7 +52,6 @@ Compression is set to _Fast_ (`-mx3` 7zip parameter) and it should compress file
 ## To-Do
 
 * run backup tasks in parallel (make it configurable?)
-* don't stop on first error (make it configurable?)
 * move Go files to a folder like `src/main` and update the build command (I'm very new to Go programming...😅)
 
 ## License

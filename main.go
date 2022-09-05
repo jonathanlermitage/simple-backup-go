@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"flag"
 	"fmt"
 	"strconv"
@@ -39,13 +40,14 @@ func main() {
 		taskNamesToKeepArray = make([]string, 0)
 	}
 
+	var failedTasks list.List
 	for i := 0; i < len(configs); i++ {
 		var config = configs[i]
 
 		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(configs)) + ", backup of " + config.TaskName + " ]----------\n")
 
 		if len(taskNamesToExecute) > 0 && !IsElementExist(taskNamesToKeepArray, config.TaskName) {
-			fmt.Println("Skipped by backup tasks filter (taskNamesToExecute)")
+			fmt.Println("✔ Skipped by backup tasks filter (taskNamesToExecute)")
 			continue
 		}
 
@@ -60,9 +62,23 @@ func main() {
 		}
 
 		if validate7zOutput(compressResult) {
-			fmt.Println("Compression done: " + compressResult)
+			fmt.Println("✔ Compression done: " + compressResult)
+
 		} else {
-			panic("Bad compression output: " + compressResult)
+			failedTasks.PushFront("♦ " + config.TaskName + ":\nBad compression output: " + compressResult)
 		}
+	}
+
+	if failedTasks.Len() > 0 {
+		fmt.Println("\n----------[ error report ]----------")
+		SaveLogs(strconv.Itoa(failedTasks.Len())+" task(s) failed", logsFolder, dryRun)
+		for e := failedTasks.Front(); e != nil; e = e.Next() {
+			SaveLogs(fmt.Sprint(e.Value), logsFolder, dryRun)
+			fmt.Println(e.Value)
+		}
+		fmt.Println("\n" + strconv.Itoa(failedTasks.Len()) + " task(s) failed")
+	} else {
+		fmt.Println("\n😎 Everything is OK!")
+		SaveLogs("Everything is OK!", logsFolder, dryRun)
 	}
 }
