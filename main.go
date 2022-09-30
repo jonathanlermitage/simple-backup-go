@@ -64,15 +64,15 @@ func main() {
 		}
 
 		if validate7zOutput(compressResult) {
-			fmt.Println("✔ Compression done: " + compressResult)
+			fmt.Println("✅ Compression completed with success")
 
 		} else {
-			failedTasks.PushFront("♦ " + config.TaskName + ":\nBad compression output: " + compressResult)
+			failedTasks.PushFront("❌ " + config.TaskName + ":\nBad compression output: " + compressResult)
 		}
 	}
 
 	if failedTasks.Len() > 0 {
-		fmt.Println("\n----------[ error report ]----------")
+		fmt.Println("\n----------[ ❌ error report ❌ ]----------")
 		SaveLogs(strconv.Itoa(failedTasks.Len())+" task(s) failed", logsFolder, dryRun)
 		for e := failedTasks.Front(); e != nil; e = e.Next() {
 			SaveLogs(fmt.Sprint(e.Value), logsFolder, dryRun)
@@ -80,7 +80,7 @@ func main() {
 		}
 		fmt.Println("\n" + strconv.Itoa(failedTasks.Len()) + " task(s) failed")
 	} else {
-		fmt.Println("\n😎 Everything is OK!")
+		fmt.Println("\n😎 Everything is OK! 😎")
 		SaveLogs("Everything is OK!", logsFolder, dryRun)
 	}
 

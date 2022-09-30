@@ -83,7 +83,7 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 		args = append(args, "-xr!"+firstFolder+"/"+excludes[i])
 	}
 
-	fmt.Println("Will run 7z with args:", args)
+	//fmt.Println("Will run 7z with args:", args)
 	if dryRun {
 		return "Everything is Ok"
 	}
