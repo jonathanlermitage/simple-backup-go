@@ -8,7 +8,7 @@
 A simple command-line backup tool written in Go, for my personal needs. I used to write CMD files that compress many folders with 7zip (with sub-folders filters, password protection...), and I wanted to move all this stuff to a single JSON file.    
 This program takes some command-line parameters and a JSON config file, and generates archive files in desired folder.
 
-[7zip](https://www.7-zip.org/) (7z.exe) should be in PATH. Tested on Windows 10 x64 with 7zip 22.01, and compiled with Go 1.19.
+[7zip](https://www.7-zip.org/) (7z.exe) should be in PATH. Tested on Windows 10 x64 with 7zip 22.01, and compiled with Go 1.23.
 
 ## Build
 
