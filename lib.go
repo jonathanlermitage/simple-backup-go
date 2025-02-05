@@ -11,6 +11,10 @@ import (
 	"time"
 )
 
+const OneK = 1024
+const OneM = 1024 * 1024
+const OneG = 1024 * 1024 * 1024
+
 // FileExists returns true is given file exists, otherwise false.
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
@@ -53,17 +57,17 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 		folderToCompress = folderToCompress[0 : len(folderToCompress)-1]
 	}
 
-	targetFolder = strings.Replace(targetFolder, "\\", "/", -1)
-	if !(strings.HasSuffix(targetFolder, "/")) {
-		targetFolder += "/"
+	var targetFolderForCurrentMonth = strings.Replace(targetFolder, "\\", "/", -1)
+	if !(strings.HasSuffix(targetFolderForCurrentMonth, "/")) {
+		targetFolderForCurrentMonth += "/"
 	}
-	targetFolder += GetCurrentDate() + "/"
+	targetFolderForCurrentMonth += GetCurrentDate() + "/"
 
-	var archivePath = targetFolder + archiveName + " " + GetCurrentDateTime() + ".7z"
+	var archivePath = targetFolderForCurrentMonth + archiveName + " " + GetCurrentDateTime() + ".7z"
 
 	if !dryRun {
-		if !FolderExists(targetFolder) {
-			mkdirErr := os.MkdirAll(targetFolder, 0755)
+		if !FolderExists(targetFolderForCurrentMonth) {
+			mkdirErr := os.MkdirAll(targetFolderForCurrentMonth, 0755)
 			if mkdirErr != nil {
 				log.Fatal(mkdirErr)
 			}
@@ -96,7 +100,12 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 
 	var compressionResult = string(out[:])
 
-	if !validate7zOutput(compressionResult) {
+	if validate7zOutput(compressionResult) {
+		if FileExists(archivePath) {
+			fmt.Println("Generated archive file " + archivePath + " (approx. " + GetFileSize(archivePath) + ")")
+			PrintBackupSizeEvolutionOverTime(targetFolderForCurrentMonth, archiveName, archivePath)
+		}
+	} else {
 		if FileExists(archivePath) {
 			_ = os.Remove(archivePath)
 			fmt.Println("Compression failed, deleted bad archive file " + archivePath)
@@ -106,10 +115,34 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	return compressionResult
 }
 
+func PrintBackupSizeEvolutionOverTime(archivesBaseFolder string, archivesBaseName string, lastFilePath string) {
+	//
+}
+
+func GetFileSize(filePath string) string {
+	fi, err := os.Stat(filePath)
+	if err != nil {
+		log.Fatal("Error when evaluating file's size:", err)
+	}
+	var fiSize = fi.Size()
+	var sizeUnit = "B"
+	if fiSize > OneG {
+		fiSize = fiSize / OneG
+		sizeUnit = "GB"
+	} else if fiSize > OneM {
+		fiSize = fiSize / OneM
+		sizeUnit = "MB"
+	} else if fiSize > OneK {
+		fiSize = fiSize / OneK
+		sizeUnit = "KB"
+	}
+	return fmt.Sprintf("%d%s", fiSize, sizeUnit)
+}
+
 func RotateLogs(logsFolder string, dryRun bool) {
 	var prevReportFilePath = logsFolder + "simple-backup-go-logs_prev.txt"
 	var reportFilePath = logsFolder + "simple-backup-go-logs.txt"
-	fmt.Println("Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
+	fmt.Println("🧾 Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
 	if !dryRun {
 		_ = os.Remove(prevReportFilePath)
 		_ = os.Rename(reportFilePath, prevReportFilePath)

@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 )
@@ -17,13 +18,25 @@ func main() {
 	var configFile string
 	var logsFolder string
 	var taskNamesToExecute string
+	var restartOneDrive bool
 	flag.BoolVar(&dryRun, "dryRun", true, "dry run")
 	flag.StringVar(&password, "password", "", "protect archive with given password")
 	flag.StringVar(&targetFolder, "targetFolder", "", "archive location")
 	flag.StringVar(&configFile, "configFile", "", "configuration file")
 	flag.StringVar(&logsFolder, "logsFolder", "", "logs folder location")
 	flag.StringVar(&taskNamesToExecute, "taskNamesToExecute", "", "list of backup tasks to execute")
+	flag.BoolVar(&restartOneDrive, "restartOneDrive", false, "restart MS OneDrive once backup completes")
 	flag.Parse()
+
+	// Stop OneDrive, similar to %LOCALAPPDATA%\Microsoft\OneDrive\OneDrive.exe /shutdown
+	var onedrivePath = os.Getenv("LOCALAPPDATA") + "\\Microsoft\\OneDrive\\OneDrive.exe"
+	if restartOneDrive {
+		fmt.Printf("💤 Stopping OneDrive\n")
+		_, err := exec.Command(onedrivePath, "/shutdown").Output()
+		if err != nil {
+			fmt.Printf("Error stopping OneDrive: %v\n", err)
+		}
+	}
 
 	var configs = LoadBackupTaskConfigs(configFile)
 
@@ -68,6 +81,17 @@ func main() {
 
 		} else {
 			failedTasks.PushFront("❌ " + config.TaskName + ":\nBad compression output: " + compressResult)
+		}
+	}
+
+	// Start OneDrive in the background, similar to start "OneDrive" /B "%LOCALAPPDATA%\Microsoft\OneDrive\onedrive" /background
+	if restartOneDrive {
+		fmt.Printf("\n🚀 Starting OneDrive")
+		cmd := exec.Command(onedrivePath, "/background")
+		err := cmd.Start()
+		if err != nil {
+			fmt.Printf("Error starting OneDrive: %v\n", err)
+			return
 		}
 	}
 
