@@ -55,12 +55,6 @@ Compression is set to _Fast_ (`-mx3` 7zip parameter) and it should compress file
 
 Tip: you may want to start the program in a new tab on Windows Terminal (`wt`) instead of the classical CMD console (which doesn't render emojis correctly). Please use a command like this: `wt -w 0 nt C:\theAbsolutePathOf\simple-backup-go.exe ...arguments...`, otherwise you may see an error when Windows Terminal is already opened. See the [Windows Terminal documentation](https://docs.microsoft.com/en-us/windows/terminal/command-line-arguments?tabs=windows#open-a-new-profile-instance).
 
-## To-Do
-
-* run backup tasks in parallel (make it configurable?)
-* move Go files to a folder like `src/main` and update the build command (I'm very new to Go programming and I'm too busy...😅)
-* support macOS
-
 ## License
 
 MIT License. In other words, you can do what you want: this project is entirely OpenSource, Free and Gratis.  
