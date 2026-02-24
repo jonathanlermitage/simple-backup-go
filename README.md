@@ -8,8 +8,9 @@
 A simple command-line backup tool written in Go, for my personal needs. I used to write CMD files that compress many folders with 7zip (with sub-folders filters, password protection...), and I wanted to move all this stuff to a single JSON file.    
 This program takes some command-line parameters and a JSON config file, and generates archive files in desired folder.
 
-[7zip](https://www.7-zip.org/) (7z.exe) should be in PATH. Tested on Windows 10 x64 with 7zip 22.01 and 24.09 (it should work with any version), and compiled with Go 1.23.  
-Windows only (for now).
+Windows: tested on Windows 10 x64 with 7zip 22.01, 24.09, 25.01, and 26.00. [7zip](https://www.7-zip.org/) should be in PATH.
+
+<!--Linux: tested on Arch Linux with [7zip-25.01-1](https://archlinux.org/packages/extra/x86_64/7zip/). Other Linux distributions may work too, like Debian or Fedora.-->
 
 ## Build
 
@@ -22,9 +23,9 @@ The program takes command-line parameters:
 | Command            | Description                                                                        | Default |                          Required                          |
 |--------------------|------------------------------------------------------------------------------------|:-------:|:----------------------------------------------------------:|
 | targetFolder       | where the backups are located                                                      |         |                            yes                             |
+| workFolder            | temporary work directory for archive generation                                    |         |                             no                             |
 | configFile         | the location of the JSON config file                                               |         |                            yes                             |
 | logsFolder         | where the logs are saved (will save no logs if not specified)                      |         |                             no                             |
-| dryRun             | don't run the backup tasks, and show what the 7zip commands would be instead       | `false` |                             no                             |
 | restartOneDrive    | stop MS OneDrive before backing up, then start it once the backup is complete      | `false` |                             no                             |
 | password           | password used to protect backups, if password required by JSON config              |         | if `protect-with-password` is set to `true` in JSON config |
 | taskNamesToExecute | backup tasks filter: use it to execute only given backup tasks (see example below) |         |                             no                             |
@@ -48,7 +49,8 @@ simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=
 simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=C:\Users\jonathan\backup-config.json -taskNamesToExecute="Foobar2000 playlists,Stardew Valley profile and saves"
 ```
 
-It will generate 7zip archive files in the target folder. Archive files look like this: `the_source_folder_path YYYYMMDD hhmmss.7z`, per example `C_Projects 20220819 201536.7z`.  
+It will generate archive files in the target folder. Archive files look like this: `the_source_folder_path YYYYMMDD hhmmss.7z` (Windows) or `.zip` (Linux).  
+Example: `C_Projects 20220819 201536.7z`.  
 Compression is set to _Fast_ (`-mx3` 7zip parameter) and it should compress files open for writing (`-ssw` 7zip parameter).
 
 Tip: you may want to start the program in a new tab on Windows Terminal (`wt`) instead of the classical CMD console (which doesn't render emojis correctly). Please use a command like this: `wt -w 0 nt C:\theAbsolutePathOf\simple-backup-go.exe ...arguments...`, otherwise you may see an error when Windows Terminal is already opened. See the [Windows Terminal documentation](https://docs.microsoft.com/en-us/windows/terminal/command-line-arguments?tabs=windows#open-a-new-profile-instance).
@@ -57,7 +59,7 @@ Tip: you may want to start the program in a new tab on Windows Terminal (`wt`) i
 
 * run backup tasks in parallel (make it configurable?)
 * move Go files to a folder like `src/main` and update the build command (I'm very new to Go programming and I'm too busy...😅)
-* support Linux and macOS
+* support macOS
 
 ## License
 

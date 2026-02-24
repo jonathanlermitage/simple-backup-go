@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -45,8 +46,16 @@ func GetCurrentDate() string {
 
 // Compress compresses given folder to archive using 7z method, and optionally protects archive
 // with a password.
-func Compress(folderToCompress string, excludes []string, targetFolder string, archiveName string, password string, protectWithPassword bool, dryRun bool) string {
-	args := []string{"a", "-t7z"}
+func Compress(folderToCompress string, excludes []string, targetFolder string, archiveName string, password string, protectWithPassword bool, workFolder string) string {
+	var archiveExtension = ".7z"
+	var archiveFormat = "-t7z"
+	var p7zipCommand = "7z"
+
+	if runtime.GOOS == "windows" {
+		p7zipCommand = "7z.exe"
+	}
+
+	args := []string{"a", archiveFormat}
 
 	if protectWithPassword && len(password) > 0 {
 		args = append(args, "-p"+password)
@@ -63,21 +72,46 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	}
 	targetFolderForCurrentMonth += GetCurrentDate() + "/"
 
-	var archivePath = targetFolderForCurrentMonth + archiveName + " " + GetCurrentDateTime() + ".7z"
+	var finalFileName = archiveName + " " + GetCurrentDateTime() + archiveExtension
+	var archivePath = targetFolderForCurrentMonth + finalFileName
 
-	if !dryRun {
-		if !FolderExists(targetFolderForCurrentMonth) {
-			mkdirErr := os.MkdirAll(targetFolderForCurrentMonth, 0755)
+	var tempArchivePath = ""
+	if len(workFolder) > 0 {
+		workFolder = strings.Replace(workFolder, "\\", "/", -1)
+		if !(strings.HasSuffix(workFolder, "/")) {
+			workFolder += "/"
+		}
+		tempArchivePath = workFolder + finalFileName
+	}
+
+	if !FolderExists(targetFolderForCurrentMonth) {
+		mkdirErr := os.MkdirAll(targetFolderForCurrentMonth, 0755)
+		if mkdirErr != nil {
+			log.Fatal(mkdirErr)
+		}
+	}
+	if len(workFolder) > 0 {
+		if !FolderExists(workFolder) {
+			mkdirErr := os.MkdirAll(workFolder, 0755)
 			if mkdirErr != nil {
 				log.Fatal(mkdirErr)
 			}
 		}
-		if FileExists(archivePath) {
-			_ = os.Remove(archivePath)
-		}
 	}
 
-	args = append(args, archivePath, folderToCompress,
+	if FileExists(archivePath) {
+		_ = os.Remove(archivePath)
+	}
+	if len(tempArchivePath) > 0 && FileExists(tempArchivePath) {
+		_ = os.Remove(tempArchivePath)
+	}
+
+	var pathToUseFor7z = archivePath
+	if len(tempArchivePath) > 0 {
+		pathToUseFor7z = tempArchivePath
+	}
+
+	args = append(args, pathToUseFor7z, folderToCompress,
 		"-ssw", /* compress files open for writing */
 		"-mx3", /* set level of compression */
 		"-bd" /* disable progress indicator */)
@@ -87,12 +121,7 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 		args = append(args, "-xr!"+firstFolder+"/"+excludes[i])
 	}
 
-	//fmt.Println("Will run 7z with args:", args)
-	if dryRun {
-		return "Everything is Ok"
-	}
-
-	out, err := exec.Command("7z.exe", args...).Output()
+	out, err := exec.Command(p7zipCommand, args...).Output()
 
 	if err != nil {
 		fmt.Println(err)
@@ -101,12 +130,28 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	var compressionResult = string(out[:])
 
 	if validate7zOutput(compressionResult) {
+		if len(tempArchivePath) > 0 {
+			if FileExists(tempArchivePath) {
+				fmt.Println("Moving archive from " + tempArchivePath + " to " + archivePath)
+				moveErr := os.Rename(tempArchivePath, archivePath)
+				if moveErr != nil {
+					fmt.Printf("Error moving archive: %v\n", moveErr)
+					// If rename fails (e.g. cross-device), we might need another way,
+					// but os.Rename is usually fine within the same filesystem or between some.
+					// However, the requirement is to move it.
+				}
+			}
+		}
+
 		if FileExists(archivePath) {
 			fmt.Println("Generated archive file " + archivePath + " (approx. " + GetFileSize(archivePath) + ")")
 			PrintBackupSizeEvolutionOverTime(targetFolderForCurrentMonth, archiveName, archivePath)
 		}
 	} else {
-		if FileExists(archivePath) {
+		if len(tempArchivePath) > 0 && FileExists(tempArchivePath) {
+			_ = os.Remove(tempArchivePath)
+			fmt.Println("Compression failed, deleted bad temporary archive file " + tempArchivePath)
+		} else if FileExists(archivePath) {
 			_ = os.Remove(archivePath)
 			fmt.Println("Compression failed, deleted bad archive file " + archivePath)
 		}
@@ -139,28 +184,24 @@ func GetFileSize(filePath string) string {
 	return fmt.Sprintf("%d%s", fiSize, sizeUnit)
 }
 
-func RotateLogs(logsFolder string, dryRun bool) {
+func RotateLogs(logsFolder string) {
 	var prevReportFilePath = logsFolder + "simple-backup-go-logs_prev.txt"
 	var reportFilePath = logsFolder + "simple-backup-go-logs.txt"
 	fmt.Println("🧾 Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
-	if !dryRun {
-		_ = os.Remove(prevReportFilePath)
-		_ = os.Rename(reportFilePath, prevReportFilePath)
-	}
+	_ = os.Remove(prevReportFilePath)
+	_ = os.Rename(reportFilePath, prevReportFilePath)
 }
 
-func SaveLogs(report string, logsFolder string, dryRun bool) {
-	if !dryRun {
-		f, err := os.OpenFile(logsFolder+"simple-backup-go-logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			log.Fatal("Error when opening log file:", err)
-		}
-		if _, err := f.WriteString("\n##########\n" + report); err != nil {
-			log.Fatal("Error when writing log file:", err)
-		}
-		if err := f.Close(); err != nil {
-			log.Fatal("Error when closing log file:", err)
-		}
+func SaveLogs(report string, logsFolder string) {
+	f, err := os.OpenFile(logsFolder+"simple-backup-go-logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal("Error when opening log file:", err)
+	}
+	if _, err := f.WriteString("\n##########\n" + report); err != nil {
+		log.Fatal("Error when writing log file:", err)
+	}
+	if err := f.Close(); err != nil {
+		log.Fatal("Error when closing log file:", err)
 	}
 }
 

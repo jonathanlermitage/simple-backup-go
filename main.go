@@ -7,30 +7,31 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 )
 
 func main() {
-	var dryRun bool
 	var password string
 	var targetFolder string
 	var configFile string
 	var logsFolder string
+	var workFolder string
 	var taskNamesToExecute string
 	var restartOneDrive bool
-	flag.BoolVar(&dryRun, "dryRun", true, "dry run")
 	flag.StringVar(&password, "password", "", "protect archive with given password")
 	flag.StringVar(&targetFolder, "targetFolder", "", "archive location")
 	flag.StringVar(&configFile, "configFile", "", "configuration file")
 	flag.StringVar(&logsFolder, "logsFolder", "", "logs folder location")
+	flag.StringVar(&workFolder, "workFolder", "", "temporary work directory for archive generation")
 	flag.StringVar(&taskNamesToExecute, "taskNamesToExecute", "", "list of backup tasks to execute")
 	flag.BoolVar(&restartOneDrive, "restartOneDrive", false, "restart MS OneDrive once backup completes")
 	flag.Parse()
 
 	// Stop OneDrive, similar to %LOCALAPPDATA%\Microsoft\OneDrive\OneDrive.exe /shutdown
-	var onedrivePath = os.Getenv("LOCALAPPDATA") + "\\Microsoft\\OneDrive\\OneDrive.exe"
-	if restartOneDrive {
+	if restartOneDrive && runtime.GOOS == "windows" {
+		var onedrivePath = os.Getenv("LOCALAPPDATA") + "\\Microsoft\\OneDrive\\OneDrive.exe"
 		fmt.Printf("💤 Stopping OneDrive\n")
 		_, err := exec.Command(onedrivePath, "/shutdown").Output()
 		if err != nil {
@@ -45,7 +46,7 @@ func main() {
 		if !(strings.HasSuffix(logsFolder, "/")) {
 			logsFolder += "/"
 		}
-		RotateLogs(logsFolder, dryRun)
+		RotateLogs(logsFolder)
 	}
 
 	var taskNamesToKeepArray []string
@@ -70,10 +71,10 @@ func main() {
 		archiveName = strings.Replace(archiveName, "/", "_", -1)
 		archiveName = strings.Replace(archiveName, ":", "", -1)
 
-		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password, config.ProtectWithPassword == "true", dryRun)
+		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password, config.ProtectWithPassword == "true", workFolder)
 
 		if len(logsFolder) > 0 {
-			SaveLogs(compressResult, logsFolder, dryRun)
+			SaveLogs(compressResult, logsFolder)
 		}
 
 		if validate7zOutput(compressResult) {
@@ -85,7 +86,8 @@ func main() {
 	}
 
 	// Start OneDrive in the background, similar to start "OneDrive" /B "%LOCALAPPDATA%\Microsoft\OneDrive\onedrive" /background
-	if restartOneDrive {
+	if restartOneDrive && runtime.GOOS == "windows" {
+		var onedrivePath = os.Getenv("LOCALAPPDATA") + "\\Microsoft\\OneDrive\\OneDrive.exe"
 		fmt.Printf("\n🚀 Starting OneDrive")
 		cmd := exec.Command(onedrivePath, "/background")
 		err := cmd.Start()
@@ -97,15 +99,15 @@ func main() {
 
 	if failedTasks.Len() > 0 {
 		fmt.Println("\n----------[ ❌ error report ❌ ]----------")
-		SaveLogs(strconv.Itoa(failedTasks.Len())+" task(s) failed", logsFolder, dryRun)
+		SaveLogs(strconv.Itoa(failedTasks.Len())+" task(s) failed", logsFolder)
 		for e := failedTasks.Front(); e != nil; e = e.Next() {
-			SaveLogs(fmt.Sprint(e.Value), logsFolder, dryRun)
+			SaveLogs(fmt.Sprint(e.Value), logsFolder)
 			fmt.Println(e.Value)
 		}
 		fmt.Println("\n" + strconv.Itoa(failedTasks.Len()) + " task(s) failed")
 	} else {
 		fmt.Println("\n😎 Everything is OK! 😎")
-		SaveLogs("Everything is OK!", logsFolder, dryRun)
+		SaveLogs("Everything is OK!", logsFolder)
 	}
 
 	fmt.Print("\nPress any key to exit...")
