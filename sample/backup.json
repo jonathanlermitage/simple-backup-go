@@ -2,6 +2,7 @@
   {
     "task-name": "Some projects",
     "source": "C:\\Projects",
+    "compression-ratio": "9",
     "excludes": [
       "web3 sucks/out",
       "web3 sucks/target",

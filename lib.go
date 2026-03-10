@@ -46,7 +46,7 @@ func GetCurrentDate() string {
 
 // Compress compresses given folder to archive using 7z method, and optionally protects archive
 // with a password.
-func Compress(folderToCompress string, excludes []string, targetFolder string, archiveName string, password string, protectWithPassword bool, workFolder string) string {
+func Compress(folderToCompress string, excludes []string, targetFolder string, archiveName string, password string, protectWithPassword bool, workFolder string, compressionRatio string) string {
 	var archiveExtension = ".7z"
 	var archiveFormat = "-t7z"
 	var p7zipCommand = "7z"
@@ -111,9 +111,11 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 		pathToUseFor7z = tempArchivePath
 	}
 
+	compressionRatioToUse := determineCompressionRatio(compressionRatio)
+
 	args = append(args, pathToUseFor7z, folderToCompress,
-		"-ssw", /* compress files open for writing */
-		"-mx3", /* set level of compression */
+		"-ssw",                /* compress files open for writing */
+		compressionRatioToUse, /* set level of compression */
 		"-bd" /* disable progress indicator */)
 
 	var firstFolder = folderToCompress[strings.LastIndex(folderToCompress, "/")+1:]
@@ -229,6 +231,7 @@ type BackupTaskConfigs []struct {
 	TaskName            string   `json:"task-name"`
 	Source              string   `json:"source"`
 	ProtectWithPassword string   `json:"protect-with-password,omitempty"`
+	CompressionRatio    string   `json:"compression-ratio,omitempty"`
 	Excludes            []string `json:"excludes,omitempty"`
 }
 
@@ -254,4 +257,16 @@ func IsElementExist(s []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func determineCompressionRatio(ratio string) string {
+	var compressionRatioToUse = "-mx3"
+	if len(ratio) > 0 {
+		if strings.HasPrefix(ratio, "-mx") {
+			compressionRatioToUse = ratio
+		} else {
+			compressionRatioToUse = "-mx" + ratio
+		}
+	}
+	return compressionRatioToUse
 }

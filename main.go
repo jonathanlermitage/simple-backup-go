@@ -60,7 +60,8 @@ func main() {
 	for i := 0; i < len(configs); i++ {
 		var config = configs[i]
 
-		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(configs)) + ", backup of " + config.TaskName + " ]----------\n")
+		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(configs)) +
+			", backup of " + config.TaskName + " ]----------\n")
 
 		if len(taskNamesToExecute) > 0 && !IsElementExist(taskNamesToKeepArray, config.TaskName) {
 			fmt.Println("✔ Skipped by backup tasks filter (taskNamesToExecute)")
@@ -71,7 +72,8 @@ func main() {
 		archiveName = strings.Replace(archiveName, "/", "_", -1)
 		archiveName = strings.Replace(archiveName, ":", "", -1)
 
-		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password, config.ProtectWithPassword == "true", workFolder)
+		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password,
+			config.ProtectWithPassword == "true", workFolder, config.CompressionRatio)
 
 		if len(logsFolder) > 0 {
 			SaveLogs(compressResult, logsFolder)

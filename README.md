@@ -37,6 +37,7 @@ A JSON config file describes one or many backup tasks. See the sample [backup.js
 | task-name             | a name for the backup task                                                        |         |   yes    |
 | source                | the folder to back up                                                             |         |   yes    |
 | protect-with-password | protect the generated archive file with the password provided by the command line | `false` |    no    |
+| compression-ratio    | set the compression level (7zip `-mx` parameter)                                   |  `-mx3` |    no    |
 | excludes              | a list of sub-folders to exclude from the backup                                  |  `[]`   |    no    |
 
 Examples: 
@@ -51,7 +52,7 @@ simple-backup-go.exe -password=foo -targetFolder=D:\data\my_backups -configFile=
 
 It will generate archive files in the target folder. Archive files look like this: `the_source_folder_path YYYYMMDD hhmmss.7z` (Windows) or `.zip` (Linux).  
 Example: `C_Projects 20220819 201536.7z`.  
-Compression is set to _Fast_ (`-mx3` 7zip parameter) and it should compress files open for writing (`-ssw` 7zip parameter).
+Compression is set to _Fast_ (`-mx3` 7zip parameter) by default, but it can be overridden by the `compression-ratio` field at the task level. It should also compress files open for writing (`-ssw` 7zip parameter).
 
 Tip: you may want to start the program in a new tab on Windows Terminal (`wt`) instead of the classical CMD console (which doesn't render emojis correctly). Please use a command like this: `wt -w 0 nt C:\theAbsolutePathOf\simple-backup-go.exe ...arguments...`, otherwise you may see an error when Windows Terminal is already opened. See the [Windows Terminal documentation](https://docs.microsoft.com/en-us/windows/terminal/command-line-arguments?tabs=windows#open-a-new-profile-instance).
 
