@@ -187,23 +187,27 @@ func GetFileSize(filePath string) string {
 }
 
 func RotateLogs(logsFolder string) {
-	var prevReportFilePath = logsFolder + "simple-backup-go-logs_prev.txt"
-	var reportFilePath = logsFolder + "simple-backup-go-logs.txt"
-	fmt.Println("🧾 Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
-	_ = os.Remove(prevReportFilePath)
-	_ = os.Rename(reportFilePath, prevReportFilePath)
+	if len(logsFolder) > 0 {
+		var prevReportFilePath = logsFolder + "simple-backup-go-logs_prev.txt"
+		var reportFilePath = logsFolder + "simple-backup-go-logs.txt"
+		fmt.Println("🧾 Report rotation: move " + reportFilePath + " to " + prevReportFilePath)
+		_ = os.Remove(prevReportFilePath)
+		_ = os.Rename(reportFilePath, prevReportFilePath)
+	}
 }
 
 func SaveLogs(report string, logsFolder string) {
-	f, err := os.OpenFile(logsFolder+"simple-backup-go-logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal("Error when opening log file:", err)
-	}
-	if _, err := f.WriteString("\n##########\n" + report); err != nil {
-		log.Fatal("Error when writing log file:", err)
-	}
-	if err := f.Close(); err != nil {
-		log.Fatal("Error when closing log file:", err)
+	if len(logsFolder) > 0 {
+		f, err := os.OpenFile(logsFolder+"simple-backup-go-logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			log.Fatal("Error when opening log file:", err)
+		}
+		if _, err := f.WriteString("\n##########\n" + report); err != nil {
+			log.Fatal("Error when writing log file:", err)
+		}
+		if err := f.Close(); err != nil {
+			log.Fatal("Error when closing log file:", err)
+		}
 	}
 }
 

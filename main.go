@@ -81,9 +81,7 @@ func main() {
 		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password,
 			config.ProtectWithPassword == "true", workFolder, compressionRatio)
 
-		if len(logsFolder) > 0 {
-			SaveLogs(compressResult, logsFolder)
-		}
+		SaveLogs(compressResult, logsFolder)
 
 		if validate7zOutput(compressResult) {
 			fmt.Println("✅ Compression completed with success")
