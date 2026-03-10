@@ -116,7 +116,7 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 	args = append(args, pathToUseFor7z, folderToCompress,
 		"-ssw",                /* compress files open for writing */
 		compressionRatioToUse, /* set level of compression */
-		"-bd" /* disable progress indicator */)
+		"-bd"                  /* disable progress indicator */)
 
 	var firstFolder = folderToCompress[strings.LastIndex(folderToCompress, "/")+1:]
 	for i := 0; i < len(excludes); i++ {
@@ -226,8 +226,7 @@ func Parallelize(functions ...func()) {
 	}
 }
 
-// BackupTaskConfigs backup tasks. Generated with https://mholt.github.io/json-to-go/
-type BackupTaskConfigs []struct {
+type BackupTaskConfig struct {
 	TaskName            string   `json:"task-name"`
 	Source              string   `json:"source"`
 	ProtectWithPassword string   `json:"protect-with-password,omitempty"`
@@ -235,19 +234,33 @@ type BackupTaskConfigs []struct {
 	Excludes            []string `json:"excludes,omitempty"`
 }
 
+type BackupConfigs struct {
+	CompressionRatio string             `json:"compression-ratio,omitempty"`
+	Tasks            []BackupTaskConfig `json:"tasks"`
+}
+
 // LoadBackupTaskConfigs loads given config file then returns configured backup tasks.
-func LoadBackupTaskConfigs(configFile string) BackupTaskConfigs {
+func LoadBackupTaskConfigs(configFile string) BackupConfigs {
 	content, err := os.ReadFile(configFile)
 	if err != nil {
 		log.Fatal("Error when opening file:", err)
 	}
 	// Now let's unmarshall the data into `config`
-	var config BackupTaskConfigs
+	var config BackupConfigs
 	err = json.Unmarshal(content, &config)
-	if err != nil {
-		log.Fatal("Error during Unmarshal():", err)
+	if err == nil && len(config.Tasks) > 0 {
+		return config
 	}
-	return config
+
+	// Try old format
+	var tasks []BackupTaskConfig
+	err = json.Unmarshal(content, &tasks)
+	if err == nil {
+		return BackupConfigs{Tasks: tasks}
+	}
+
+	log.Fatal("Error during Unmarshal():", err)
+	return BackupConfigs{}
 }
 
 func IsElementExist(s []string, str string) bool {

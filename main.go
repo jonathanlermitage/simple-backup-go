@@ -39,7 +39,8 @@ func main() {
 		}
 	}
 
-	var configs = LoadBackupTaskConfigs(configFile)
+	var backupConfigs = LoadBackupTaskConfigs(configFile)
+	var tasks = backupConfigs.Tasks
 
 	if len(logsFolder) > 0 {
 		logsFolder = strings.Replace(logsFolder, "\\", "/", -1)
@@ -57,10 +58,10 @@ func main() {
 	}
 
 	var failedTasks list.List
-	for i := 0; i < len(configs); i++ {
-		var config = configs[i]
+	for i := 0; i < len(tasks); i++ {
+		var config = tasks[i]
 
-		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(configs)) +
+		fmt.Print("\n----------[ executing step " + strconv.Itoa(i+1) + "/" + strconv.Itoa(len(tasks)) +
 			", backup of " + config.TaskName + " ]----------\n")
 
 		if len(taskNamesToExecute) > 0 && !IsElementExist(taskNamesToKeepArray, config.TaskName) {
@@ -72,8 +73,13 @@ func main() {
 		archiveName = strings.Replace(archiveName, "/", "_", -1)
 		archiveName = strings.Replace(archiveName, ":", "", -1)
 
+		var compressionRatio = config.CompressionRatio
+		if len(compressionRatio) == 0 {
+			compressionRatio = backupConfigs.CompressionRatio
+		}
+
 		compressResult := Compress(config.Source, config.Excludes, targetFolder, archiveName, password,
-			config.ProtectWithPassword == "true", workFolder, config.CompressionRatio)
+			config.ProtectWithPassword == "true", workFolder, compressionRatio)
 
 		if len(logsFolder) > 0 {
 			SaveLogs(compressResult, logsFolder)
