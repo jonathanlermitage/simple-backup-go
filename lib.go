@@ -159,7 +159,16 @@ func Compress(folderToCompress string, excludes []string, targetFolder string, a
 		}
 	}
 
-	return compressionResult
+	var readableCompressionString = p7zipCommand
+	for i := 0; i < len(args); i++ {
+		if strings.HasPrefix(args[i], "-p") {
+			readableCompressionString += " -p***"
+		} else {
+			readableCompressionString += " " + args[i]
+		}
+	}
+
+	return readableCompressionString + "\n" + compressionResult
 }
 
 func PrintBackupSizeEvolutionOverTime(archivesBaseFolder string, archivesBaseName string, lastFilePath string) {
